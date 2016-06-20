@@ -1,0 +1,22 @@
+{
+  "manifest_version": 2,
+
+  "name": "CI Dancer",
+  "description": "Dancing CI",
+  "version": "0.1",
+  "options_page": "options.html",
+  "browser_action": {
+    "default_popup": "options.html"
+  },
+  "permissions": [
+          "storage"
+        ],
+  "content_scripts":
+  [
+    {
+      "matches": ["https://ci.ops.powershop.com/*"],
+      "js": ["jQuery.min.js", "gifadder.js"],
+      "run_at": "document_end"
+    }
+  ]
+}
