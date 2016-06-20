@@ -1,10 +1,13 @@
-const DEFAULT_WAITING = ["waiting", "bored", "still", "wait", "mundane", "tired", "dull"];
+const DEFAULT_WAITING = ["waiting", "bored", "still", "wait", "mundane", "tired", "dull", "sleeping"];
+const BETA_API_KEY = "dc6zaTOxFJmzC"
+const GIPHY_RANDOM_SEARCH_URL = `https://api.giphy.com/v1/gifs/random?api_key=${BETA_API_KEY}&tag=`
+
 chrome.storage.sync.get({
     gifType: "dancing",
 }, function(options) {
-    let gifType = options.gifType;
+    let gifType = gifTypeForQueue(options.gifType);
     $.ajax({
-        url: `https://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=${gifTypeForURL(gifType)}`,
+        url: `${GIPHY_RANDOM_SEARCH_URL}${URLForGifType(gifType)}`,
         success: function(result) {
             image_url = result.data.image_url;
             $('#side-panel').append(`
@@ -14,25 +17,31 @@ chrome.storage.sync.get({
 					<a title="collapse" class="collapse" href="#" onclick="document.getElementById('giphygif').style.display = document.getElementById('giphygif').style.display == 'none' ? 'block' : 'none'; return false">
 					<img style="width: 16px; height: 16px; " alt="collapse" class="icon-collapse icon-sm" src="/static/1b6f1120/images/16x16/collapse.png">
 					</a>
-					${gifType} gif</div></div>
+					<span id="giftitle">${gifType} gif</span>
+          </div></div>
 					<img id="giphygif" src='${image_url}' width=100%>
 					</div>`);
         }
     });
     setInterval(function() {
-        gifType = gifTypeForURL(options.gifType);
+        gifType = gifTypeForQueue(options.gifType);
         $.ajax({
-            url: `https://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=${gifType}`,
+            url: `${GIPHY_RANDOM_SEARCH_URL}${URLForGifType(gifType)}`,
             success: function(result) {
                 image_url = result.data.image_url;
                 $('#giphygif').attr('src', image_url);
+                $('#giftitle').innerText = `${gifType} gif`;
             }
         });
     }, 11000);
 });
 
-function gifTypeForURL(default_gif){
-	return isBuildInQueue() ? randomWaitingWord() : default_gif.replace(" ", "+");
+function gifTypeForQueue(default_gif){
+  return isBuildInQueue() ? randomWaitingWord() : default_gif;
+}
+
+function URLForGifType(gifword){
+	return gifword.replace(" ", "+");
 }
 
 function randomWaitingWord(){
