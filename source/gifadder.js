@@ -1,4 +1,6 @@
-const DEFAULT_WAITING = ["waiting", "bored", "still", "wait", "mundane", "tired", "dull", "sleeping"];
+const DEFAULT_WAITING = ["waiting", "bored", "still", "wait", "mundane", "tired", "dull", "sleeping", "queue"];
+const DEFAULT_PANIC = ["panic", "fire", "sad", "siren", "sob", "explode", "riot", "cry", "explosion", "hell"];
+const PANIC_THRESHOLD = 7
 const BETA_API_KEY = "dc6zaTOxFJmzC"
 const GIPHY_RANDOM_SEARCH_URL = `https://api.giphy.com/v1/gifs/random?api_key=${BETA_API_KEY}&tag=`
 
@@ -24,6 +26,7 @@ chrome.storage.sync.get({
         }
     });
     setInterval(function() {
+      console.log(numberOfBuildsInQueue());
         gifType = gifTypeForQueue(options.gifType);
         $.ajax({
             url: `${GIPHY_RANDOM_SEARCH_URL}${URLForGifType(gifType)}`,
@@ -37,7 +40,14 @@ chrome.storage.sync.get({
 });
 
 function gifTypeForQueue(default_gif){
-  return isBuildInQueue() ? randomWaitingWord() : default_gif;
+  var build_number = numberOfBuildsInQueue();
+  if(build_number > PANIC_THRESHOLD){
+    return randomPanicWord();
+  }else if(build_number > 0){
+    return randomWaitingWord();
+  }else{
+    return default_gif;
+  }
 }
 
 function URLForGifType(gifword){
@@ -48,6 +58,16 @@ function randomWaitingWord(){
 	return DEFAULT_WAITING[(Math.random() * DEFAULT_WAITING.length) | 0];
 }
 
+function randomPanicWord(){
+  return DEFAULT_PANIC[(Math.random() * DEFAULT_PANIC.length) | 0];
+}
+
 function isBuildInQueue() {
     return document.querySelector("#buildQueue .model-link") != null;
+}
+
+function numberOfBuildsInQueue(){
+   var builds = document.querySelector("#buildQueue .col-xs-24").innerText
+   builds = builds.replace(/Build Queue \(([0-9]+)\)/ig, "$1");
+   return parseInt(builds);
 }
